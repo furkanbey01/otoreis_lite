@@ -1,0 +1,20 @@
+[
+  {
+    "goal": "Open wikipedia and search for Artificial intelligence",
+    "steps": [
+      {"type": "navigate", "args": {"url": "https://www.wikipedia.org"}},
+      {"type": "type", "args": {"selector": "input#searchInput", "text": "Artificial intelligence"}},
+      {"type": "click", "args": {"selector": "button[type='submit']"}},
+      {"type": "extract_text", "args": {"selector": "#firstHeading"}},
+      {"type": "save_json", "args": {"path": "results/ai_heading.json"}}
+    ]
+  },
+  {
+    "goal": "Open example.com and save heading",
+    "steps": [
+      {"type": "navigate", "args": {"url": "https://example.com"}},
+      {"type": "extract_text", "args": {"selector": "h1"}},
+      {"type": "save_json", "args": {"path": "results/example_heading.json"}}
+    ]
+  }
+]
