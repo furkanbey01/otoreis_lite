@@ -9,10 +9,12 @@ from app.api.routes import router as api_router
 from app.config import ensure_dirs, load_settings
 from app.core.db import DB
 from app.mcp.routes import router as mcp_router
+from app.models.schemas import RuntimeSettings
 from app.services.executor import Executor
 from app.services.orchestrator import Orchestrator
 from app.services.planner import Planner
 from app.services.policy import PolicyEngine
+from app.services.settings_manager import SettingsManager
 from app.services.state_manager import StateManager
 from app.tools.browser_tool import BrowserTool
 from app.tools.filesystem_tool import FilesystemTool
@@ -32,11 +34,19 @@ async def lifespan(app: FastAPI):
     planner = Planner()
     policy = PolicyEngine()
     state = StateManager(db)
+    runtime_defaults = RuntimeSettings(
+        default_timeout_sec=settings.default_timeout_sec,
+        max_steps=settings.max_steps,
+        max_retries=settings.max_retries,
+        require_approval=True,
+    )
+    settings_manager = SettingsManager(db, runtime_defaults)
     executor = Executor(browser, fs_tool, settings.default_timeout_sec)
-    orchestrator = Orchestrator(settings, planner, executor, policy, state)
+    orchestrator = Orchestrator(planner, executor, policy, state, settings_manager.get)
 
     app.state.db = db
     app.state.orchestrator = orchestrator
+    app.state.settings_manager = settings_manager
     app.state.browser = browser
     yield
     await browser.stop()

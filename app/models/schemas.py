@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from pydantic import BaseModel, Field
 from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 class TaskStatus(str, Enum):
@@ -41,6 +42,9 @@ class TaskCreateRequest(BaseModel):
     plan_hint: str | None = None
     steps: list[Action] | None = None
     require_approval: bool = True
+    timeout_sec: int | None = None
+    max_steps: int | None = None
+    max_retries: int | None = None
 
 
 class TaskResponse(BaseModel):
@@ -57,6 +61,7 @@ class TaskDetailResponse(BaseModel):
     current_step: int
     total_steps: int
     pending_approval: Action | None = None
+    options: dict[str, Any] = Field(default_factory=dict)
     logs: list[dict[str, Any]]
 
 
@@ -66,5 +71,19 @@ class ApprovalRequest(BaseModel):
 
 
 class MCPToolCall(BaseModel):
-    tool: Literal["create_task", "task_status", "approve_task", "cancel_task"]
+    tool: Literal["create_task", "task_status", "approve_task", "cancel_task", "settings_get", "settings_set"]
     arguments: dict[str, Any]
+
+
+class RuntimeSettings(BaseModel):
+    default_timeout_sec: int = 20
+    max_steps: int = 20
+    max_retries: int = 1
+    require_approval: bool = True
+
+
+class RuntimeSettingsUpdate(BaseModel):
+    default_timeout_sec: int | None = None
+    max_steps: int | None = None
+    max_retries: int | None = None
+    require_approval: bool | None = None

@@ -4,12 +4,24 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.models.schemas import ApprovalRequest, TaskCreateRequest, TaskDetailResponse, TaskResponse
+from app.models.schemas import (
+    ApprovalRequest,
+    RuntimeSettings,
+    RuntimeSettingsUpdate,
+    TaskCreateRequest,
+    TaskDetailResponse,
+    TaskResponse,
+)
 from app.services.orchestrator import Orchestrator
+from app.services.settings_manager import SettingsManager
 
 
 def get_orchestrator(request: Request) -> Orchestrator:
     return request.app.state.orchestrator
+
+
+def get_settings_manager(request: Request) -> SettingsManager:
+    return request.app.state.settings_manager
 
 
 router = APIRouter()
@@ -18,7 +30,14 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.post("/tasks", response_model=TaskResponse)
 async def create_task(payload: TaskCreateRequest, orchestrator: Orchestrator = Depends(get_orchestrator)):
-    task_id = await orchestrator.create_and_start(payload.goal, payload.steps)
+    task_id = await orchestrator.create_and_start(
+        payload.goal,
+        payload.steps,
+        payload.require_approval,
+        payload.timeout_sec,
+        payload.max_steps,
+        payload.max_retries,
+    )
     detail = orchestrator.get_task_detail(task_id)
     return TaskResponse(id=task_id, goal=payload.goal, status=detail["status"])
 
@@ -27,7 +46,14 @@ async def create_task(payload: TaskCreateRequest, orchestrator: Orchestrator = D
 async def list_tasks(request: Request):
     rows = request.app.state.db.list_tasks()
     return [
-        {"id": r["id"], "goal": r["goal"], "status": r["status"], "summary": r["summary"], "current_step": r["current_step"], "total_steps": r["total_steps"]}
+        {
+            "id": r["id"],
+            "goal": r["goal"],
+            "status": r["status"],
+            "summary": r["summary"],
+            "current_step": r["current_step"],
+            "total_steps": r["total_steps"],
+        }
         for r in rows
     ]
 
@@ -55,6 +81,16 @@ async def cancel_task(task_id: int, orchestrator: Orchestrator = Depends(get_orc
         return {"ok": True}
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/settings", response_model=RuntimeSettings)
+async def get_settings(manager: SettingsManager = Depends(get_settings_manager)):
+    return manager.get()
+
+
+@router.put("/settings", response_model=RuntimeSettings)
+async def update_settings(payload: RuntimeSettingsUpdate, manager: SettingsManager = Depends(get_settings_manager)):
+    return manager.update(payload)
 
 
 @router.get("/dashboard", response_class=HTMLResponse)

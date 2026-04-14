@@ -175,6 +175,18 @@ Beklenen çıktı:
 
 ---
 
+
+## Web Arayüzünden Tüm Kontroller
+
+Dashboard: `http://localhost:8000/api/dashboard`
+
+Bu panelden:
+- Runtime ayarlarını güncelleyebilirsin (timeout, max_steps, max_retries, approval).
+- JSON step planı ile görev oluşturabilirsin.
+- Görevleri canlı izleyebilirsin.
+- Bekleyen onay adımlarını onay/red yapabilirsin.
+- Çalışan görevi iptal edebilirsin.
+
 ## İlk Görevini Gönder (Test)
 
 ```bash

@@ -33,6 +33,7 @@ class DB:
                     current_step INTEGER NOT NULL DEFAULT 0,
                     total_steps INTEGER NOT NULL DEFAULT 0,
                     pending_approval_json TEXT,
+                    options_json TEXT NOT NULL DEFAULT '{}',
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
@@ -51,12 +52,21 @@ class DB:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS app_settings (
+                    key TEXT PRIMARY KEY,
+                    value_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
 
-    def create_task(self, goal: str, status: str, plan: list[dict[str, Any]]) -> int:
+    def create_task(self, goal: str, status: str, plan: list[dict[str, Any]], options: dict[str, Any]) -> int:
         with self.conn() as conn:
             cur = conn.execute(
-                "INSERT INTO tasks(goal,status,plan_json,total_steps) VALUES (?,?,?,?)",
-                (goal, status, json.dumps(plan), len(plan)),
+                "INSERT INTO tasks(goal,status,plan_json,total_steps,options_json) VALUES (?,?,?,?,?)",
+                (goal, status, json.dumps(plan), len(plan), json.dumps(options)),
             )
             return int(cur.lastrowid)
 
@@ -102,3 +112,21 @@ class DB:
                     }
                 )
             return out
+
+    def get_setting(self, key: str, default: Any) -> Any:
+        with self.conn() as conn:
+            row = conn.execute("SELECT value_json FROM app_settings WHERE key=?", (key,)).fetchone()
+            if not row:
+                return default
+            return json.loads(row["value_json"])
+
+    def set_setting(self, key: str, value: Any) -> None:
+        with self.conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO app_settings(key, value_json, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=CURRENT_TIMESTAMP
+                """,
+                (key, json.dumps(value)),
+            )

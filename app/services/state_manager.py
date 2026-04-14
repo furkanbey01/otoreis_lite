@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 from typing import Any
+
 from app.core.db import DB
-from app.models.schemas import TaskStatus, Action
+from app.models.schemas import Action, TaskStatus
 
 
 class StateManager:
     def __init__(self, db: DB):
         self.db = db
 
-    def create_task(self, goal: str, plan: list[Action]) -> int:
-        return self.db.create_task(goal, TaskStatus.queued.value, [a.model_dump() for a in plan])
+    def create_task(self, goal: str, plan: list[Action], options: dict[str, Any]) -> int:
+        return self.db.create_task(goal, TaskStatus.queued.value, [a.model_dump() for a in plan], options)
 
     def set_status(self, task_id: int, status: TaskStatus, summary: str | None = None) -> None:
         payload: dict[str, Any] = {"status": status.value}

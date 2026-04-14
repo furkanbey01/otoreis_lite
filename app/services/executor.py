@@ -14,8 +14,8 @@ class Executor:
         self.fs = fs
         self.default_timeout_sec = default_timeout_sec
 
-    async def run_action(self, action: Action, context: dict[str, Any]) -> dict[str, Any]:
-        t = self.default_timeout_sec
+    async def run_action(self, action: Action, context: dict[str, Any], timeout_sec: int) -> dict[str, Any]:
+        t = timeout_sec
         args = action.args
         at = action.type
 
@@ -53,7 +53,7 @@ class Executor:
         err = None
         for attempt in range(retries + 1):
             try:
-                res = await asyncio.wait_for(self.run_action(action, context), timeout=timeout_sec)
+                res = await asyncio.wait_for(self.run_action(action, context, timeout_sec), timeout=timeout_sec)
                 context["last_result"] = res
                 return res
             except Exception as exc:  # noqa: BLE001

@@ -1,27 +1,65 @@
 <!doctype html>
-<html>
+<html lang="tr">
   <head>
     <meta charset="utf-8" />
-    <title>otoreis-lite dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>otoreis-lite kontrol paneli</title>
     <link rel="stylesheet" href="/static/dashboard.css" />
   </head>
   <body>
-    <h1>otoreis-lite</h1>
-    <form id="task-form">
-      <textarea id="goal" rows="3" placeholder="Görev yazın..."></textarea>
-      <button type="submit">Görev Başlat</button>
-    </form>
+    <header>
+      <h1>otoreis-lite kontrol paneli</h1>
+      <button id="refresh-all">Yenile</button>
+    </header>
 
-    <section>
-      <h2>Görevler</h2>
-      <button id="refresh">Yenile</button>
-      <ul id="tasks"></ul>
-    </section>
+    <main class="grid">
+      <section class="card">
+        <h2>Runtime Ayarlar</h2>
+        <form id="settings-form" class="stack">
+          <label>Timeout (sec) <input id="default_timeout_sec" type="number" min="3" /></label>
+          <label>Max Steps <input id="max_steps" type="number" min="1" /></label>
+          <label>Max Retries <input id="max_retries" type="number" min="0" /></label>
+          <label><input id="require_approval" type="checkbox" /> Hassas adımlarda onay iste</label>
+          <button type="submit">Ayarları Kaydet</button>
+        </form>
+        <pre id="settings-view"></pre>
+      </section>
 
-    <section>
-      <h2>Detay</h2>
-      <pre id="detail"></pre>
-    </section>
+      <section class="card">
+        <h2>Görev Oluştur</h2>
+        <form id="task-form" class="stack">
+          <label>Goal
+            <textarea id="goal" rows="2" placeholder="Örn: Open wikipedia and search for LLM"></textarea>
+          </label>
+          <label>Steps JSON (opsiyonel)
+            <textarea id="steps_json" rows="10" placeholder='[{"type":"navigate","args":{"url":"https://example.com"}}]'></textarea>
+          </label>
+          <label><input id="task_require_approval" type="checkbox" checked /> Bu görevde onay koruması aktif</label>
+          <div class="inline">
+            <label>Timeout <input id="task_timeout" type="number" min="3" /></label>
+            <label>Max Steps <input id="task_max_steps" type="number" min="1" /></label>
+            <label>Retries <input id="task_retries" type="number" min="0" /></label>
+          </div>
+          <button type="submit">Görevi Başlat</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Görevler</h2>
+        <ul id="tasks"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Görev Detayı</h2>
+        <div class="inline">
+          <button id="approve-btn">Onayla</button>
+          <button id="deny-btn">Reddet</button>
+          <button id="cancel-btn">İptal Et</button>
+        </div>
+        <pre id="detail"></pre>
+      </section>
+    </main>
+
     <script src="/static/dashboard.js"></script>
   </body>
 </html>
