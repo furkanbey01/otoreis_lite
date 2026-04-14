@@ -93,32 +93,89 @@ otoreis_lite/
 6. Basit dashboard ile task başlatma/izleme yap.
 7. Docker + örnek task + dokümantasyon tamamla.
 
-## Kurulum
+---
 
-### Lokal
+## Hızlı Kurulum (En Kolay Yol: Docker)
 
+### 1) Gerekenler
+- Docker + Docker Compose
+
+### 2) Çalıştır
+```bash
+docker compose up --build
+```
+
+### 3) Aç
+- API docs: `http://localhost:8000/docs`
+- Dashboard: `http://localhost:8000/api/dashboard`
+- MCP tools: `http://localhost:8000/mcp/tools`
+
+> Veriler host makinede `./data` ve `./workspace` klasörlerine yazılır.
+
+---
+
+## Lokal Kurulum (Python ile)
+
+### 1) Gerekenler
+- Python 3.12
+- `pip`
+
+### 2) Ortamı hazırla
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 playwright install chromium
+```
+
+### 3) Konfigürasyon
+```bash
 cp .env.example .env
+```
+
+Varsayılan `.env` değerleri:
+
+```env
+HOST=0.0.0.0
+PORT=8000
+DB_PATH=./data/agent.db
+WORKSPACE_DIR=./workspace
+PLAYWRIGHT_HEADLESS=true
+DEFAULT_TIMEOUT_SEC=20
+MAX_STEPS=20
+MAX_RETRIES=1
+```
+
+### 4) Uygulamayı başlat
+```bash
 uvicorn app.main:app --reload
 ```
 
-Aç:
-- API docs: `http://localhost:8000/docs`
-- Dashboard: `http://localhost:8000/api/dashboard`
-
-### Docker
-
+### 5) Doğrula
 ```bash
-docker compose up --build
+curl http://localhost:8000/health
 ```
 
-## API Kullanımı
+Beklenen çıktı:
+```json
+{"ok": true}
+```
 
-### Task oluştur
+---
+
+## Ayarlar Ne İşe Yarıyor?
+
+- `HOST`, `PORT`: API’nin bağlanacağı adres/port.
+- `DB_PATH`: SQLite dosyasının yolu.
+- `WORKSPACE_DIR`: Ajanın dosya yazacağı güvenli klasör.
+- `PLAYWRIGHT_HEADLESS`: `true` ise görünmez tarayıcı, `false` ise görünür.
+- `DEFAULT_TIMEOUT_SEC`: Adım başına timeout.
+- `MAX_STEPS`: Bir görevde en fazla adım sayısı (bounded loop).
+- `MAX_RETRIES`: Başarısız adım için retry sayısı.
+
+---
+
+## İlk Görevini Gönder (Test)
 
 ```bash
 curl -X POST http://localhost:8000/api/tasks \
@@ -135,30 +192,24 @@ curl -X POST http://localhost:8000/api/tasks \
   }'
 ```
 
-### Task durumu
-
+Task durumu:
 ```bash
 curl http://localhost:8000/api/tasks/1
 ```
 
-### Approval gönder
+Çıktı dosyası:
+- `./workspace/results/ai_heading.json`
 
-```bash
-curl -X POST http://localhost:8000/api/tasks/1/approval \
-  -H 'Content-Type: application/json' \
-  -d '{"approve": true, "note": "ok"}'
-```
+---
 
-## MCP (ChatGPT uyumlu skeleton)
+## ChatGPT / MCP Entegrasyonu (MVP Skeleton)
 
-### Tool listesini al
-
+Tool listesini al:
 ```bash
 curl http://localhost:8000/mcp/tools
 ```
 
-### Tool çağır
-
+Tool çağır:
 ```bash
 curl -X POST http://localhost:8000/mcp/call \
   -H 'Content-Type: application/json' \
@@ -167,6 +218,26 @@ curl -X POST http://localhost:8000/mcp/call \
     "arguments": {"goal": "Open example.com and extract h1"}
   }'
 ```
+
+---
+
+## Sorun Giderme
+
+1. **`ModuleNotFoundError` alıyorum**
+   - `.venv` aktif mi kontrol et.
+   - `pip install -e .` komutunu tekrar çalıştır.
+
+2. **Playwright browser bulunamadı**
+   - `playwright install chromium` çalıştır.
+
+3. **Port dolu (`8000`)**
+   - `.env` içinde `PORT=8010` gibi değiştir veya
+   - `uvicorn ... --port 8010` ile başlat.
+
+4. **Docker’da permission sorunu**
+   - `./data` ve `./workspace` klasörlerinin yazılabilir olduğundan emin ol.
+
+---
 
 ## Token Verimliliği İçin Uygulananlar
 
