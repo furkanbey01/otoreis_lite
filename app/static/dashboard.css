@@ -1,0 +1,5 @@
+body { font-family: Arial, sans-serif; margin: 24px; max-width: 900px; }
+textarea { width: 100%; }
+pre { background: #111; color: #0f0; padding: 12px; min-height: 200px; overflow: auto; }
+li { margin: 8px 0; }
+button { margin-top: 8px; }

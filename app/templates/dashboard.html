@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>otoreis-lite dashboard</title>
+    <link rel="stylesheet" href="/static/dashboard.css" />
+  </head>
+  <body>
+    <h1>otoreis-lite</h1>
+    <form id="task-form">
+      <textarea id="goal" rows="3" placeholder="Görev yazın..."></textarea>
+      <button type="submit">Görev Başlat</button>
+    </form>
+
+    <section>
+      <h2>Görevler</h2>
+      <button id="refresh">Yenile</button>
+      <ul id="tasks"></ul>
+    </section>
+
+    <section>
+      <h2>Detay</h2>
+      <pre id="detail"></pre>
+    </section>
+    <script src="/static/dashboard.js"></script>
+  </body>
+</html>
